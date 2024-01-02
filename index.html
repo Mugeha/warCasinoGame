@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="author" content="Mugeha">
+  <meta name="description" content="War game of cards">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="C:\Users\25475\OneDrive\warGame\index.css">
+  </head>
+  <body>
+    <div class="top">
+    <button id="new-deck">New Deck</button>
+    <p id="remaining"></p>
+    </div>
+    <h2 id="header">Game of War</h2>
+    <h3 id="computer-score">Computer Score:0</h3>
+    <div id="cards">
+      <div id="card-slot"></div>
+      <div id="card-slot"></div>
+      </div>
+      <h3 id="my-score">My score: 0</h3>
+      <button id="draw-cards" class="draw">DRAW</button>
+      <script>
+        let deckId
+        let computerScore = 0
+        let myScore = 0
+        let drawCards = document.getElementById("draw-cards")
+        const newDeck = document.getElementById("new-deck")
+        const cardsContainer = document.getElementById("cards")
+        const header = document.getElementById("header")
+        const remainingText = document.getElementById("remaining")
+        const computerScoreEl = document.getElementById("computer-score")
+const myScoreEl = document.getElementById("my-score")
+        function handleClick(){
+
+          fetch("https://apis.scrimba.com/deckofcards/api/deck/new/shuffle/")
+          .then(res => res.json())
+          .then(data => {
+             remainingText.textContent = `Remaining cards: ${data.remaining}`
+            deckId = data.deck_id
+            console.log(deckId)
+          })
+        }
+        newDeck.addEventListener("click", handleClick)
+
+        drawCards.addEventListener('click', function(){
+          fetch(`https://apis.scrimba.com/deckofcards/api/deck/${deckId}/draw/?count=2`)
+          .then(res => res.json())
+          .then(data => {
+                   remainingText.textContent = `Remaining cards: ${data.remaining}`
+            cardsContainer.children[0].innerHTML = `
+                <img src=${data.cards[0].image} class="card" />
+            `
+            cardsContainer.children[1].innerHTML = `
+                <img src=${data.cards[1].image} class="card" />
+            `
+            const winnerText = determineCardWinner(data.cards[0], data.cards[1])
+            header.textContent = winnerText
+
+            if(data.remaining === 0){
+              drawCards.disabled = true
+              if(computerScore > myScore){
+                header.textContent = "The Computer Wins!"
+              } else if(myScore > computerScore){
+                header.textContent = "You won the Game!"
+              } else {
+                header.textContent = "It's a tie game"
+              }
+            }
+          })
+        })
+
+        function determineCardWinner(card1, card2){
+          const valueOptions = ["2", "3", "4", "5", "6", "7", "8", "9",
+    "10", "JACK", "QUEEN", "KING", "ACE"]
+    const card1ValueIndex = valueOptions.indexOf(card1.value)
+    const card2ValueIndex = valueOptions.indexOf(card2.value)
+    if (card1ValueIndex > card2ValueIndex){
+      computerScore++
+      computerScoreEl.textContent = `Computer score: ${computerScore}`
+      return "Computer Wins!"
+    } else if(card1ValueIndex < card2ValueIndex){
+      myScore++
+      myScoreEl.textContent = `My Score: ${myScore}`
+      return "You Win!"
+    } else {
+      return "War!"
+    }
+        }
+        </script>
+      </body>
+      </html>
